@@ -1,0 +1,2032 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 (http://www.altova.com) by YJME (Swiss AviationSoftware) -->
+<!-- Swiss AviationSoftware Ltd. -->
+<!-- P.O.Box, CH-4002 Basel, Switzerland -->
+<!-- http://www.swiss-as.com -->
+<!-- SWISS AviationSoftware, 2005 (VECH) -->
+<!-- ***AMOS_AUTO_GENERATION*** -->
+<!--***AMOS_CHANGELOG_START***
+Version 0.1
+	13/11/2006 - Introduced version 2006.1
+	10/01/2006 - moved to envelope-style, new versioning
+	04/04/2007 - changed workorder-action section to block-text
+	16/04/2007 - corrected typo, 
+                     - made eventType optional, 
+                     - added release statement, 
+                     - added flags for boroscope, jacks and dock,
+                     - added part-description, aircraftType BOTH for EXPORT only(!)-
+	25/04/2007 - moved hil-Flag to yesNoType
+	25/04/2007 - added field workorderClassification
+	27/04/2007 - modified reference type. allows all Stings with maxLength=5
+                     - changed stucture of partOnOff type
+	30/04/2007 - changed structure of description field
+	09/05/2007 - changed structure of description field again
+                     - changed action structure back to how it was
+	14/06/2007 - including AmosCommonTypes
+	13/07/2007 - made some fields optional. Added some documentation
+
+Version 0.2
+	25/09/2007 - additional fields for required parts. Additional flags.
+	27/09/2007 - additional fields added.
+	27/09/2007 - eventType allows 'T' (=Taskcard).
+	08/11/2007 - removed 2 unused groups. acPos & stationStoreLocationType
+	29/11/2007 - compatible structural change & Changelog annotation
+	04/12/2007 - changed usersign field in requiredParts section to optional
+	09/04/2008 - added event types W, E, O, I
+	29/07/2008 - changed workpackageNumber from integer to string. (XPIS)
+	05/08/2008 - Removed import of AmosCommonTypes. Copied types instead.
+
+Version 0.3
+	14/04/2009 - Changes according to RFC by IQ and LH-Cityline.
+	19/06/2009 - Changed maxLen of position in PartOnOff section from 8 to 14
+	24/03/2010 - Added amos database information (XPIS)
+	
+Version 0.31
+	24/06/2010 - Created
+						- added documentation for userSign-field
+						- added remarks-field (references)
+						- added otherReleaseStatement-field (release)
+						- added structuralDamage-, testRun-, externalHydraulic- and defuel-flags
+
+Version 0.32
+	10/03/2011 - Created from 0.31
+						- added externallyProvisioned-flag
+
+Version 0.33
+	06/06/2011 - Created from 0.32
+						- added fields repair_far145 and admin_wo_only (wo_header_more)
+	06/06/2012 			- reference number field extended to 38 chars
+	20/12/2012 - Extend to 255 chars the referenceNumber field max-length in referenceType-level (according to max-length of the related DB field db_link.description)
+	13/08/2013 - VECH - referenceType max.-length facet was changed from 5 to 8 characters in version 0.33 (#83831)
+	11/12/2013 - YJME - <customer> max-length in additionalDataCollection-level extended to 12 characters according to related DB field wo_header_crx.customer (#90748).
+	10/01/2014 - YJME On import the <transfers> section is ignored if the last transfer does not contain the following fields:
+									- <transferDate>
+									- <transferTime>
+									- <transferStation>
+
+WARNING: This schema version only supports up to 20 characters for part number fields!
+Extended part numbers, up to 32 characters, are handled from version 2.3 onwards.
+
+***AMOS_CHANGELOG_END***-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:sas="http://www.swiss-as.com/XML" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="0.3">
+	<!-- COMMON TYPES -->
+	<!-- SIMPLE ISO8601 DATE -->
+	<xs:simpleType name="simpleDateType">
+		<xs:annotation>
+			<xs:documentation>Date type. ISO8601-date as string or empty string.</xs:documentation>
+			<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([1-9][0-9][0-9][0-9]\-((0[1-9])|(1[0-2]))\-((0[1-9])|([12][0-9])|([3][01])))?"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- SIMPLE UTC TIME -->
+	<xs:simpleType name="simpleTimeUtcType">
+		<xs:annotation>
+			<xs:documentation>Time type. UTC-time as string or empty string.</xs:documentation>
+			<xs:appinfo>AMOS_MIMETYPE=D_TIME</xs:appinfo>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="(([01][0-9][:][0-5][0-9])|(2[0-3][:][0-5][0-9]))?"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- YES OR NO -->
+	<xs:simpleType name="yesNoType">
+		<xs:annotation>
+			<xs:documentation>Y=YES; N=NO.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Y">
+				<xs:annotation>
+					<xs:documentation>YES.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="N">
+				<xs:annotation>
+					<xs:documentation>NO.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- PRIMITIVE TYPES -->
+	<xs:simpleType name="positiveInteger">
+		<xs:annotation>
+			<xs:documentation>Zero or positive integer</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="2147483647"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="integer">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="-2147483648"/>
+			<xs:maxInclusive value="2147483647"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- ATA CHAPTER -->
+	<xs:simpleType name="ataChapter">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="12"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- STATION -->
+	<xs:simpleType name="station">
+		<xs:annotation>
+			<xs:documentation>Max. 4 characters</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="4"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- USER SIGN -->
+	<xs:simpleType name="userSignSimpleType">
+		<xs:annotation>
+			<xs:documentation>Any user sign. Max. 8 characters.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="8"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- PARTNUMBER DEFINITION -->
+	<xs:simpleType name="partNumberType">
+		<xs:annotation>
+			<xs:documentation>Type for partnumbers: minLentgh=1; maxLength=20;</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--PARTSERIALNUMBER DEFINITION -->
+	<xs:simpleType name="partSerialNumberType">
+		<xs:annotation>
+			<xs:documentation>Type for part-serialnumbers: minLength=1; maxLength=20</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- COMMON TYPES finished -->
+	<!-- PART/SERIAL NUMBER COMPLEX TYPE -->
+	<xs:complexType name="partSerialNumberGroup">
+		<xs:annotation>
+			<xs:documentation>Groups a part and and a serial number</xs:documentation>
+		</xs:annotation>
+		<xs:all>
+			<xs:element name="partNumber" type="partNumberType">
+				<xs:annotation>
+					<xs:documentation>part number. This field only supports up to 20 characters. Please use the latest schema version to accommodate part numbers up to 32 characters. </xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_part_on_off</xs:appinfo>
+					<xs:appinfo>AMOS_CHECKED_LENGTH_EXPORT=32</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="serialNumber" type="partSerialNumberType">
+				<xs:annotation>
+					<xs:documentation>serial number</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_part_on_off</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- WO_TYPE -->
+	<xs:simpleType name="workorderTypeType">
+		<xs:annotation>
+			<xs:documentation>Type of the workorder: P = Pirep, C = Cabin, M = Maintenance, S = Scheduled
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P">
+				<xs:annotation>
+					<xs:documentation>Pirep.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="C">
+				<xs:annotation>
+					<xs:documentation>Cabin.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="M">
+				<xs:annotation>
+					<xs:documentation>Maintenance.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="S">
+				<xs:annotation>
+					<xs:documentation>Scheduled.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- WO_STATE -->
+	<xs:simpleType name="workorderStateType">
+		<xs:annotation>
+			<xs:documentation>State of the workorder: O = open Workorder,  C = closed Workorder
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="O">
+				<xs:annotation>
+					<xs:documentation>Open workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="C">
+				<xs:annotation>
+					<xs:documentation>Closed workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- GROUPS -->
+	<!--<xs:group name="acPos">
+		<xs:sequence>
+			<xs:element name="aircraft" type="xs:string">
+				<xs:annotation>
+					<xs:appinfo>AMOS_MIMETYPE=E_AC</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="position" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="stationStoreLocationType">
+		<xs:sequence>
+			<xs:element name="station" type="xs:string">
+				<xs:annotation>
+					<xs:appinfo>AMOS_MIMETYPE=A_STATION</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="store" type="xs:string" minOccurs="0"/>
+			<xs:element name="location" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:group>-->
+	<!-- WORKORDER -->
+	<xs:complexType name="workorderType">
+		<xs:all>
+			<xs:element name="workorderNumber" type="positiveInteger">
+				<xs:annotation>
+					<xs:documentation>The documents workorder-number.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=E_WO</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.workorderno</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orgWorkorderNumber" type="positiveInteger" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Original workorder-number after a change.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=E_WO</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="deleted" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Deleted Y or N. No header is required if deleted.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workorderHeader" type="workorderHeaderType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Further information regarding the workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- REQUIRED_PARTSCollection -->
+	<xs:complexType name="requiredPartsCollection">
+		<xs:sequence>
+			<xs:element name="requiredPart" type="requiredPartType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- REQUIRED_PARTType-->
+	<xs:complexType name="requiredPartType">
+		<xs:all minOccurs="0">
+			<xs:element name="partNumber" type="partNumberType">
+				<xs:annotation>
+					<xs:documentation>The required parts number. This field only supports up to 20 characters. Please use the latest schema version to accommodate part numbers up to 32 characters. </xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=M_PART</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=part_request.partno</xs:appinfo>
+					<xs:appinfo>AMOS_CHECKED_LENGTH_EXPORT=32</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="partDescription" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Closer description to the partnumber.(Only used for EXPORT.)</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part.description</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="quantity" type="positiveInteger">
+				<xs:annotation>
+					<xs:documentation>Required number of parts.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part_request.qty</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="unitOfMeasurement" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Unit of measurement of the required part. Only filled on export. Ignored on import.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part.measure_unit</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="5"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="isTool" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Flag indication that the required part is a tool. Only filled on export. Ignored on import.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part.tool</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="externallyProvisioned" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Flag indication that the required part is externally provisioned. Only filled on export. Ignored on import.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part_request_2 .externally_provisioned</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ipcReference" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>IPC Reference.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=part_request.ipc_reference</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="30"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="userSign" type="userSignSimpleType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>User sign. Not filled with part request framework</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- ROTABLEType-->
+	<xs:complexType name="rotableType">
+		<xs:all minOccurs="0">
+			<xs:element name="partNumber" type="partNumberType">
+				<xs:annotation>
+					<xs:documentation>The rotables part number. This field only supports up to 20 characters. Please use the latest schema version to accommodate part numbers up to 32 characters. </xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=M_PART</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.partno</xs:appinfo>
+					<xs:appinfo>AMOS_CHECKED_LENGTH_EXPORT=32</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="serialNumber" type="partSerialNumberType">
+				<xs:annotation>
+					<xs:documentation>The rotables serial number.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.serialno</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="position" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The rotables position.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.ac_position</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="14"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- WO_REFERENCESCollection -->
+	<xs:complexType name="workorderReferencesCollection">
+		<xs:sequence>
+			<xs:element name="reference" type="workorderReferenceType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- WO_REFERENCEType -->
+	<xs:complexType name="workorderReferenceType">
+		<xs:all minOccurs="0">
+			<xs:element name="referenceNumber">
+				<xs:annotation>
+					<xs:documentation>Number of the referenced document.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=db_link.description</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="255"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="referenceType">
+				<xs:annotation>
+					<xs:documentation>Type of reference. I.E. T=Taskcard, W=Workorder, D=Document, F=Flight-Log. Custom reference types allowed but max. 5 characters
+					</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=db_link.ref_type</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="remarks" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="36"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- TRANSFERCollection -->
+	<xs:complexType name="transferCollection">
+		<xs:sequence>
+			<xs:element name="transfer" type="transferType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- TRANSFERType-->
+	<xs:complexType name="transferType">
+		<xs:all minOccurs="0">
+			<xs:element name="transferIndex" type="integer">
+				<xs:annotation>
+					<xs:documentation>Index of the transfer. ONLY THE TRANSFER WITH THE HIGHEST INDEX COUNTS.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.recno</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workpackageNumber" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Workpackage number. Only filled if a workorder is assigned to a workpackage.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wp_header.wpno</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="30"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="plannedDate" type="simpleDateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Planned date of the work. Only filled if a workorder is assigned to a workpackage.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.planned_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="expectedDate" type="simpleDateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Expected Date. Depending on the due-values and the flight-log. Information only, will not be imported.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=forecast.expected_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priority" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The workorders priority.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.prio</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="4"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="checkType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Filled if you transfer a workorder to a check type. (Not on every layout possible.)</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.check_type</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="20"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="transferDate" type="simpleDateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Date at transfer.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.date_transfer</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transferTime" type="simpleTimeUtcType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Time at transfer.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.transfer_time</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transferStation" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Station at transfer.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.transfer_station</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="dueDate" type="simpleDateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Due date.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.transfer_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dueTah" type="integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAH due.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.due_tah</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dueTac" type="integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAC due.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.due_tac</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="noLimit" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>No limit set: YES or NO.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.no_limit</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mechSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Mechanic sign. User or mech sign is mandatory</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.mech_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="userSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>User sign. User or mech sign is mandatory.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.user_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="transferReason" minOccurs="0">
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="reason">
+							<xs:annotation>
+								<xs:documentation>Transfer Reason/Extension Code. (Basic Table: Maint. Events Extension Codes Event Type: W)</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.reason_code</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="6"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="remarks" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Remarks for transfer.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_transfer.remarks</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="36"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="releaseToService" minOccurs="0">
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="date" type="simpleDateType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Date is save on a Release to Service with Tranfer.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_date</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="time" type="simpleTimeUtcType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Time is save on a Release to Service with Tranfer.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_time</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="station" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Station is save on a Release to Service with Tranfer.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_station</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="6"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="sign" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>User Sign is save on a Release to Service with Tranfer.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_sign</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="8"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="statement" type="xs:integer" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Approval flag is save on a Release to Service with Tranfer. 
+								ATTENTION Always fill the statementOther tag since the standard certificate can be different in two environments.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_statement</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="statementOther" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Approval Number is save on a Release to Service with Tranfer.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_transfer.rts_statement_other</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="36"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- PARTS_ON_OFFCollection -->
+	<xs:complexType name="onOffPartsCollection">
+		<xs:sequence>
+			<xs:element name="onOffPart" type="onOffPartType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- ON_OFF_PARTType-->
+	<xs:complexType name="onOffPartType">
+		<xs:all minOccurs="0">
+			<xs:element name="onPart" type="partSerialNumberGroup" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The installed part and serial number.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="offPart" type="partSerialNumberGroup" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The removed part and serial number.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="labelNumber" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Number of the booking label.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_part_on_off.labelno</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="position">
+				<xs:annotation>
+					<xs:documentation>The parts position.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_part_on_off.ac_position</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="14"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="removalType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Type of removal: N=New, C=Cannibalisation, S=Swap
+					</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_part_on_off.removal_type</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="1"/>
+						<xs:minLength value="1"/>
+						<xs:enumeration value="N">
+							<xs:annotation>
+								<xs:documentation>New</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="C">
+							<xs:annotation>
+								<xs:documentation>Cannibalization</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="S">
+							<xs:annotation>
+								<xs:documentation>Swap</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- SHOPCollection -->
+	<xs:complexType name="shopCollection">
+		<xs:sequence>
+			<xs:element name="shop" type="shopType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- SHOPType-->
+	<xs:complexType name="shopType">
+		<xs:all minOccurs="0">
+			<xs:element name="shop">
+				<xs:annotation>
+					<xs:documentation>Shop.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_shop.shop</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="12"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="shopOld" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Old shop. Deprecated</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_shop.shop_old</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="estimatedMan" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Estimated man..</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_shop.est_man</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="estimatedManhours" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>Estimated manhours.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_shop.est_mh</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- ISSUE_DATA-->
+	<xs:complexType name="issueType">
+		<xs:all minOccurs="0">
+			<xs:element name="issueDate" type="simpleDateType">
+				<xs:annotation>
+					<xs:documentation>Date the workorder was issued.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>User sign of the user who issued the workorder.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="issueStation" type="station" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Station the workorder was issued.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_station</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueLeg" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Leg the workorder was issued.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_leg</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="issueTah" type="integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAH when workorder was issued.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_tah</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueTac" type="integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAC when workorder was issued.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_tac</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueFltFrom" type="station" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Departure station of the flight.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_flt_from</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueFltTo" type="station" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Arrival/issue station of the flight.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.issue_flt_to</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- RELEASE_DATA-->
+	<xs:complexType name="releaseType">
+		<xs:all minOccurs="0">
+			<xs:element name="closingDate" type="simpleDateType">
+				<xs:annotation>
+					<xs:documentation>Date the workorder was closed.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.closing_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="closingLeg" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Leg the workorder was closed.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.closing_leg</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="mechSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Mechanic sign. = Closing sign.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.mech_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="releaseSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Closing sign, necessary to close a workorder.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.release_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="releaseSign2" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Closing sign 2, necessary if double inspection is required.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.release_sign2</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="releaseTime" type="simpleTimeUtcType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Closing time of the workorder.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.release_time</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="releaseStation" type="station">
+				<xs:annotation>
+					<xs:documentation>Closing station, necessary to close a work order.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="releaseTah" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAH when workorder was closed.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.release_tah</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="releaseTac" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>TAC when workorder was closed.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.release_tac</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="releaseStatement" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>ATTENTION Always fill the otherReleaseStatement tag since the standard certificate can be different in two environments.                 
+					Release statement:
+						1 - standard is selected
+						2 - 2nd default is selected, if available
+						9 - Other release statement is selected
+					</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.rel_statement</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="thirdPartyRelease" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Other technical partners No.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.third_party_release</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="20"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="otherReleaseStatement" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="36"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- TROUBLE_DATA-->
+	<xs:complexType name="troubleType">
+		<xs:all minOccurs="0">
+			<xs:element name="troubleDate" type="simpleDateType">
+				<xs:annotation>
+					<xs:documentation>Work date.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.trouble_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="troubleTime" type="simpleTimeUtcType">
+				<xs:annotation>
+					<xs:documentation>Closing time of the workorder.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.trouble_time</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- REPETITIVE_DATA-->
+	<xs:complexType name="repetitiveType">
+		<xs:all minOccurs="0">
+			<xs:element name="interval" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Repetition interval.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.repetitive</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dimension">
+				<xs:annotation>
+					<xs:documentation>Interval dimension: H = HOURS, C = CYCLES, D = DAYS</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.repetitive_code</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="H">
+							<xs:annotation>
+								<xs:documentation>H = HOURS.</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="C">
+							<xs:annotation>
+								<xs:documentation>C = CYCLES.</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="D">
+							<xs:annotation>
+								<xs:documentation>D = DAYS.</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- WO_PRINTINGType-->
+	<xs:complexType name="workorderPrintingType">
+		<xs:all minOccurs="0">
+			<xs:element name="printed" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>A counter to check how much printouts are already printed, you can reduce the counter when you press `Unprint`.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.printed</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="addedPageCounter" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Additional Page counter is used for additional Pages.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.add_page_counter</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="printedBy" type="userSignSimpleType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>User sign. Printed by is filled after printing the original user sign of SYSTEM</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.printed_by</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- TIMEKEEPINGCollection -->
+	<xs:complexType name="timekeepingCollection">
+		<xs:sequence>
+			<xs:element name="timekeepingEntry" type="timekeepingType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- TIMEKEEPINGType-->
+	<xs:complexType name="timekeepingType">
+		<xs:all minOccurs="0">
+			<xs:element name="userSign">
+				<xs:annotation>
+					<xs:documentation>User sign.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=A_USER_SIGN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=time_captured.user_sign</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="startDate" type="simpleDateType">
+				<xs:annotation>
+					<xs:documentation>Start date.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_DATE</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=time_captured.start_date</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="startTime" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Start time in minutes.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=time_captured.start_time</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workTime" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Work time in minutes.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=time_captured.duration</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- FLAGS -->
+	<xs:complexType name="flagsCollection">
+		<xs:all>
+			<xs:element name="canibalized" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Cannibalization Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.cannibalized</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="warranty" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Warranty Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.warranty</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="doubleInspection" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Double Inspection required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.double_insp</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="hangarRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Hangar required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.hangar_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="testFlightRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Test flight required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.test_flight_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="incident" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Incident Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.incident</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="trouble" type="troubleType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Trouleshooting data.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="repetitive" type="repetitiveType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Repetitive workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="feedbackRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Feedback required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.feedback_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="briefingCard" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Briefing card Y or N</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.briefing_card</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="occurenceReport" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Occurrence report Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.occurrenc_report</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="aogRisk" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Aircraft on Ground risk Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.aog_risk</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="accident" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Accident Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.accident</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="insurance" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Insurrance Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.insurance</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="attachedDocuments" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Attached documents Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.attach_documents</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="massBalance" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Mass and balance required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.mass_balance_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="runRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Run required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.run_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="telex" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Telex checkbox set Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_4.chk_telex</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="hil" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>HIL Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.hil</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dockRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Dock required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.dock_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="jacksRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Jacks required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.jacks_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="boroscopeRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Boroscope required Y or N.</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.boroscope</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="oItem" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Is it a O-Item?</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.o_item</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="powerlessRequired" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Powerless required? Y or N</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.powerless_req</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="engineChange" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Engine change required? Y or N</xs:documentation>
+					<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.engine_change</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="structuralDamage" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Entry in damage chart required?</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="testRun" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Test run required?</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="externalHydraulic" type="yesNoType" minOccurs="0"/>
+			<xs:element name="defuel" type="yesNoType" minOccurs="0"/>
+			<xs:element name="adminWorkorderOnly" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Administration Workorder, no Maintenance Release required.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- action -->
+	<xs:complexType name="actionType">
+		<xs:sequence>
+			<xs:element name="actionText" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The text describing what was done.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mechSign" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Mech sign of who performed the action</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="performedDate" type="simpleDateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Start date of performance.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="doubleInspection" type="yesNoType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Double inspection.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workTime" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>work time in minutes</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- Actions -->
+	<xs:complexType name="actionCollection">
+		<xs:annotation>
+			<xs:documentation>Action-part of the workorder.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="action" type="actionType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>workorder action</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- WORKORDER_HEADER -->
+	<xs:complexType name="workorderHeaderType">
+		<xs:all minOccurs="0">
+			<xs:element name="workorderType" type="workorderTypeType">
+				<xs:annotation>
+					<xs:documentation>Workorder type: P = Pirep, C = Cabin, M = Maintenance, S = Scheduled
+					</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.type</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workorderState" type="workorderStateType">
+				<xs:annotation>
+					<xs:documentation>Workorder type: O = open, C = closed</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.state</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="workorderClassification" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Additional workorder-classification</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.wo_class</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ataChapter" type="ataChapter">
+				<xs:annotation>
+					<xs:appinfo>AMOS_MIMETYPE=G_ATA_CHAPTER</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.ata_chapter</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="aircraftRegistration">
+				<xs:annotation>
+					<xs:appinfo>AMOS_MIMETYPE=E_AC</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.ac_registr</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="2"/>
+						<xs:maxLength value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="position" minOccurs="0">
+				<xs:annotation>
+					<xs:appinfo>AMOS_MIMETYPE=E_AC</xs:appinfo>
+					<xs:appinfo>AMOS_DATABASE=wo_header.ac_position</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="14"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="aircraftType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Aircraft type. (Only used for EXPORT.)</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=aircraft.ac_typ</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="2"/>
+						<xs:maxLength value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="description" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Workorder text: description.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_text.description and recno &lt; 1000) NOT for WO 2.0</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="eventType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Event type out of Maintenance Forecast: D = Document, R = Rotable, C = Check, T = Taskcard, W=wo, E =change order, O = other, I = import</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.event_type</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="D">
+							<xs:annotation>
+								<xs:documentation>D = Document</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="R">
+							<xs:annotation>
+								<xs:documentation>R = Rotable</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="C">
+							<xs:annotation>
+								<xs:documentation>C = Check</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="T">
+							<xs:annotation>
+								<xs:documentation>T =Taskcard</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="W">
+							<xs:annotation>
+								<xs:documentation>W=wo</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="E">
+							<xs:annotation>
+								<xs:documentation>E =change order</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="O">
+							<xs:annotation>
+								<xs:documentation>O = other</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="I">
+							<xs:annotation>
+								<xs:documentation>I = import</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="frmCode" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>FRM code</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.frm_code</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="10"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="etops" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>ETOPS restriction is saved</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.etops</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="catStatus" minOccurs="0">
+				<xs:annotation>
+					<xs:appinfo>AMOS_DATABASE=limitation_type.limitation_value</xs:appinfo>
+					<xs:documentation>CAT status:
+3S - III
+3D - III
+2 - II
+1 -I</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="4"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="flags" type="flagsCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Collection of flags available for a workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="actions" type="actionCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Workorder actions.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mel" minOccurs="0">
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="melCode">
+							<xs:annotation>
+								<xs:documentation>Mel code: A or B or C or D</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header.mel_code</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="A">
+										<xs:annotation>
+											<xs:documentation>MEL A</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="B">
+										<xs:annotation>
+											<xs:documentation>MEL B</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="C">
+										<xs:annotation>
+											<xs:documentation>MEL C</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+									<xs:enumeration value="D">
+										<xs:annotation>
+											<xs:documentation>MEL D</xs:documentation>
+										</xs:annotation>
+									</xs:enumeration>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="melChapter" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>MEL chapter.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_more.mel_chapter</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="24"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="melTime" type="simpleTimeUtcType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>MEL time if available.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_more.mel_time</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="melDate" type="simpleDateType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>MEL date if available.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_more.mel_date</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="estimatedGroundtime" type="positiveInteger" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Estimated ground time in minutes.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.est_groundtime</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="project" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Projectnumber depending on the workorderno.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header.projectno</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="14"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="rotable" type="rotableType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Rotables for component workorders.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="requiredParts" type="requiredPartsCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List of required parts.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="onOffParts" type="onOffPartsCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List of installed/removed parts.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transfers" type="transferCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List of workorder transfers.
+ON IMPORT, the transfer with the highest index is imported only if it contains the following fields: transferDate, transferTime and transferStation.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="references" type="workorderReferencesCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List of references documents.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="shops" type="shopCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>List of shops.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="remarks" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Remarks of for the workorder.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_remarks.text</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="releaseData" type="releaseType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Release information for the workorders.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="issueData" type="issueType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Issue information for the workorders.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="additionalData" type="additionalDataCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Additional headers for the workorders.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="printingInformation" type="workorderPrintingType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Information regarding the printing of workorders.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<!-- TRANSFER_WORKORDER -->
+	<xs:element name="transferWorkorder">
+		<xs:annotation>
+			<xs:documentation>Root element for WORKORDER form.</xs:documentation>
+			<xs:appinfo>CHANGE LOG (0.1 to 0.2): &lt;br&gt;
+								New Fields:&lt;br&gt;
+								workorderHeader &lt;br&gt;
+									- frmCode &lt;br&gt;
+									- etops &lt;br&gt;
+								requiredParts &lt;br&gt;
+									- unitOfMeasurement &lt;br&gt;
+									- isTool &lt;br&gt;
+								additionalData &lt;br&gt;
+									- opusData flightdeck &amp; cabin &lt;br&gt;
+									- specialRequirement1 &lt;br&gt;
+									- specialRequirement2 &lt;br&gt;
+								flags &lt;br&gt;
+									- oItem &lt;br&gt;
+									- powerlessRequired &lt;br&gt;
+									- engineChange &lt;br&gt;
+								Modified Fields: &lt;br&gt;
+									- eventType (T=Taskcard is allowed) &lt;br&gt;
+						</xs:appinfo>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="workorder" type="workorderType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Workorder to be uploaded/changed/deleted.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" use="required" fixed="0.33"/>
+		</xs:complexType>
+	</xs:element>
+	<!-- -->
+	<!-- -->
+	<!-- TIMEKEEPINGCollection -->
+	<xs:complexType name="additionalDataCollection">
+		<xs:all>
+			<xs:element name="customer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Customer.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.customer</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="12"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="additionalAtaChapter" type="ataChapter" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Additional ATA Chapter.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.add_ata_chapter</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="positionAction" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Position of the action section only used on the CRX form.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.pos_action</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="simConfiguration" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Sim configuration.</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_crx.sim_configuration</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="10"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="timekeeping" type="timekeepingCollection" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Timekeeping data fot the workorder.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="checks" minOccurs="0">
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="pfiCrew" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Pre departure check performed by crew.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.pfi_crew</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="8"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="pfiMech" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Pre departure check performed by mechanic.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.pfi_mm</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="4"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="dailyCheckCrew" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Daily check performed by crew.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.daily_check_crew</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="8"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="dailyCheckMech" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Daily check performed by mechanic.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.daily_check_mm</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="8"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="checkFinding" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Check type.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.check_finding</xs:appinfo>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="8"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:element>
+						<xs:element name="crsPerformed" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>CRS performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.crs_perf</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="weeklyPerformed" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Weekly check performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.weekly_perf</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="transitCheck" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Transit check performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.transit_check</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="stayOverCheck" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Stay over check performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.stay_over_check</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="biWeeklyCheck" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Bi weekly check performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.bi_weekly_check</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="dailyCheck" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Daily check performed Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_MIMETYPE=D_BOOLEAN</xs:appinfo>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx.daily_check</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="uplifts" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>If multiple uplifts the last one is taken.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="oilEngine1" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for engine 1.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilEngine2" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for engine 2.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilEngine3" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for engine 3.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilEngine4" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for engine 4.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilIdg1" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for IDG 1.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilIdg2" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for IDG 2.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilIdg3" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for IDG 3.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilIdg4" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for IDG 4.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilPgb1" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for PGB 1.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilPgb2" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for PGB 2.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilApu" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for APU.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilApuGenerator" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for APU Generator.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilHydraulic1y" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for Hydraulic 1/Yellow.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilHydraulic2g" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for Hydraulic 2/Green.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilHydraulic3" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for Hydraulic 3/Blue.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilHydraulic4" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Oil uplift for Hydraulic 4.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilApuHours" type="xs:integer" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>APU Hours.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="oilApuCycles" type="xs:integer" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>APU Cycles.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="pressures" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>If multiple uplifts the last one is taken.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="tireLhNose" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure lh nose.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="tireLh1" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure lh 1.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="tireLh2" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure lh 2.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="tireRhNose" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure rh nose.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="tireRh1" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure rh 1.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="tireRh2" type="xs:double" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Tire pressure rh 2.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="o2Pressure" type="xs:decimal" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>O2 Pressure.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_header_crx</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="opusData" minOccurs="0">
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="flightDeck" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Flight deck info? Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_opus.flt_deck_info</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="cabin" type="yesNoType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Cabin info? Y or N.</xs:documentation>
+								<xs:appinfo>AMOS_DATABASE=wo_opus.cabin_info</xs:appinfo>
+							</xs:annotation>
+						</xs:element>
+					</xs:all>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="specialRequirement1" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>...</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.spec_req_1</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="specialRequirement2" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>...</xs:documentation>
+					<xs:appinfo>AMOS_DATABASE=wo_header_more.spec_req_2</xs:appinfo>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="taskcardNumber" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Check finding</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="36"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="repairFAR145" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Repair far145. J or V is saved.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+</xs:schema>

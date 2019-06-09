@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<schemas xmlns='http://xml.netbeans.org/schema/JAXBWizConfig' destdir='build/generated-sources/jaxb' projectName='Xmltohtml' version='1.0'>
+	<schema type='-xmlschema' package='' name='report'>
+		<xjc-options>
+		</xjc-options>
+		<schema-sources>
+			<schema-source location='xml-resources/jaxb/report/transferWorkorder_0.33.xsd' origLocation='../JavaServerFaces/src/main/java/com/mkyong/transferWorkorder_0.33.xsd'/>
+		</schema-sources>
+		<bindings>
+		</bindings>
+		<catalog/>
+	</schema>
+</schemas>

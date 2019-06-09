@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+    <system systemId="file:/C:/Users/13006723/Documents/NetBeansProjects/Xmltohtml/../JavaServerFaces/src/main/java/com/mkyong/transferWorkorder_0.33.xsd" uri="xml-resources/jaxb/report/transferWorkorder_0.33.xsd"/>
+</catalog>
